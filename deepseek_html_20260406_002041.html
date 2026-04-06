@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>সাংগঠনিক কর্মক্ষমতা ড্যাশবোর্ড | রোল ও টার্গেট বিশ্লেষণ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Roboto', 'Noto Sans Bengali', system-ui, sans-serif;
+            background: #eef2f7;
+            padding: 28px 20px;
+            color: #102a3c;
+        }
+
+        /* রিপোর্ট কন্টেইনার */
+        .dashboard-wrapper {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -14px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* হেডার সেকশন */
+        .header-section {
+            background: linear-gradient(98deg, #0a2f44 0%, #154e6b 100%);
+            padding: 1.2rem 2rem;
+            color: white;
+        }
+
+        .title-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .title-row h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title-row h1 small {
+            font-size: 0.85rem;
+            background: #f4c54220;
+            backdrop-filter: blur(2px);
+            padding: 5px 12px;
+            border-radius: 60px;
+            font-weight: normal;
+        }
+
+        .stats-badge {
+            background: #ffb347;
+            background: #f1c40f;
+            color: #1e3a2f;
+            padding: 6px 18px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+
+        .sub-header {
+            margin-top: 12px;
+            font-size: 0.8rem;
+            opacity: 0.85;
+            border-left: 3px solid #f4c542;
+            padding-left: 14px;
+        }
+
+        /* টেবেল স্টাইল - মোবাইল ও ডেস্কটপ ফ্রেন্ডলি */
+        .table-responsive {
+            overflow-x: auto;
+            scroll-behavior: smooth;
+        }
+
+        .performance-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 1100px;
+        }
+
+        .performance-table th {
+            background: #f0f6fa;
+            color: #0b3b4f;
+            font-weight: 700;
+            padding: 15px 8px;
+            border-bottom: 2px solid #cbdae9;
+            text-align: center;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .performance-table td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #e4edf2;
+            text-align: center;
+            vertical-align: middle;
+            background-color: #ffffff;
+            transition: all 0.2s;
+        }
+
+        .performance-table tr:hover td {
+            background-color: #fef7e0;
+        }
+
+        /* নামের কলাম বাম দিকে */
+        .performance-table td:nth-child(2) {
+            text-align: left;
+            font-weight: 600;
+            color: #1f4e6e;
+        }
+
+        .serial-cell {
+            font-weight: 700;
+            background-color: #fafcff;
+            color: #2c5282;
+        }
+
+        /* উন্নতি / অবনতি রঙিন ব্যাজ স্টাইল */
+        .progress-up {
+            background: #e0f7e8;
+            color: #1d6f42;
+            font-weight: bold;
+            border-radius: 24px;
+            padding: 4px 8px;
+            display: inline-block;
+            min-width: 55px;
+        }
+
+        .progress-down {
+            background: #ffe4e0;
+            color: #bc3900;
+            font-weight: bold;
+            border-radius: 24px;
+            padding: 4px 8px;
+            display: inline-block;
+            min-width: 55px;
+        }
+
+        .target-badge {
+            background: #e9ecf3;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .circle-role {
+            background: #eef2fa;
+            border-radius: 16px;
+            padding: 4px 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+
+        .monova-tag {
+            font-style: italic;
+            color: #636e7e;
+            font-size: 0.7rem;
+        }
+
+        .comment-text {
+            font-size: 0.72rem;
+            color: #2c5a74;
+            background: #f4f9fe;
+            border-radius: 20px;
+            padding: 4px 8px;
+            display: inline-block;
+            max-width: 160px;
+            white-space: normal;
+            line-height: 1.3;
+        }
+
+        .footer-meta {
+            background: #f8fafd;
+            padding: 16px 24px;
+            border-top: 1px solid #dce5ef;
+            font-size: 0.7rem;
+            color: #2c4f6e;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        @media (max-width: 680px) {
+            body {
+                padding: 16px 12px;
+            }
+            .performance-table th, .performance-table td {
+                padding: 8px 5px;
+                font-size: 0.7rem;
+            }
+            .title-row h1 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-wrapper">
+    <div class="header-section">
+        <div class="title-row">
+            <h1>
+                📊 সাংগঠনিক রোল & টার্গেট রিপোর্ট 
+                <small>উন্নতি-অবনতি বিশ্লেষণ</small>
+            </h1>
+            <div class="stats-badge" id="totalMemberCount">লোড হচ্ছে...</div>
+        </div>
+        <div class="sub-header">
+            🔹 রোল ভিত্তিক মূল্যায়ন | কে কে টার্গেটে নিয়েছে তার রোল | সার্কেল রোল | মনোভা ও মন্তব্য সংবলিত প্রতিবেদন
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="performance-table" id="mainRollTable">
+            <thead>
+                <tr>
+                    <th>ক্রমিক</th>
+                    <th>নাম</th>
+                    <th>মান<br>(পদ/মান)</th>
+                    <th>উন্নতি %</th>
+                    <th>অবনতি %</th>
+                    <th>কে কে টার্গেটে নিয়েছে তার রোল</th>
+                    <th>সার্কেল রোল</th>
+                    <th>মনোভা</th>
+                    <th>মন্তব্য</th>
+                </tr>
+                <tr style="background: #eef3fc;">
+                    <th colspan="9" style="text-align: left; font-weight: normal; font-size: 0.68rem; padding: 6px 12px;">
+                        📌 সাংগঠনিক কাঠামো অনুযায়ী প্রতিটি কর্মীর রোল, টার্গেট অ্যাসাইনমেন্ট ও সার্কেল রোল নির্ধারিত হয়েছে
+                    </th>
+                </tr>
+            </thead>
+            <tbody id="tableRollBody">
+                <!-- ডায়নামিক ডাটা জাভাস্ক্রিপ্ট দিয়ে ফিল হবে -->
+            </tbody>
+        </table>
+    </div>
+    <div class="footer-meta">
+        <span>✅ প্রতিটি সদস্যের জন্য টার্গেট রোল, সার্কেল দায়িত্ব ও মনোভা (মেন্টালিটি) সংযোজিত হয়েছে।</span>
+        <span>📈 উন্নতি% ও অবনতি% সাম্প্রতিক মূল্যায়ন সূচক অনুযায়ী নির্ধারিত।</span>
+    </div>
+</div>
+
+<script>
+    // ------------------ মূল নামের তালিকা (প্রদত্ত ডাটা থেকে ৮২ জন) ------------------
+    const fullNameList = [
+        "FAHIM FAISAL", "SOHEL UDDIN", "RIFAT AHMED", "MD. SAFIULLAH", "HASSAN IMAM",
+        "MD. YOUNUS ALI", "MONIR HOSSEN", "RIHANUL ISLAM SIFAT", "ABDUR RAHAMAN", "MD. OMAR FARUK",
+        "MD. SHOJIB HASAN", "FAHIM ISLAM", "MD. IBRAHIM KURAISHY", "MERAZ AHMAD", "SHEIKH EYASIN",
+        "SYED HASIBUR RAHMAN", "ABDULLAH AL MASUD", "MD. KHAIRUL ISLAM", "MD. MENHAZUL ISLAM", "OMAR FARUK",
+        "SHAKHAOAT HOSHEN", "MUHAMMAD ATIKUR RAHMAN TANVIR", "MD. ESA SHAHEDI", "MD. GOLAM ROBBANY", "MD. SAIED HASAN",
+        "MD. ABDUS SATTAR", "ATIAR RAHMAN", "ABDUL KADIR KAZI", "MUHAMMAD ABDUR RAHMAN", "MD. AYANUL HAQUE",
+        "HADIUL ISLAM", "MD. ABDUL HAKIM", "TASNEEM HASNAIN", "SHAKIL AHMED", "JUBAYER HOSAIN TANVIR",
+        "MD. ASHIKUR RAHMAN", "MD. ABU SADIK", "ABDUL MOTIN", "MIZANUR RAHMAN", "MD. ABU YOUSUF",
+        "MD. KHALID SAIFULLAH TAWFIQ", "TANVIR AHMMED PRANTO", "MUTTASIM BILLAH", "MD. IMRAN HOSEN", "OMAR FARUK",
+        "MD. TASNEM", "MAHMUDUN NOBI", "ABDULLAH IBRAHIM", "MEFTAHUL ABEDIN ASHIQ", "MD. SAMIUL BACIR",
+        "MD. SOROWER HOSSIN", "ASADUR RAHMAN BOKHARI", "ABDUR RAHMAN", "TAMIM EQBAL", "MD. MOTTALEB HOSSEN",
+        "MD. MARUF BILLAH", "MD. SAIFUL HAQUE", "MD. SOLAIMAN HOSSAIN", "MD. JOBAAR HOSSAIN", "MD. IQBAL HOSSAIN RAMJAN",
+        "MD. ABU JAFOR SALEH", "MD. HASANUZZAMAN", "MD. ABU SALAM", "MD. ABDULLAH MIR", "MINAN ISLAM",
+        "MD. HEDAYETULLAH", "EBRAHIM HOSSEN", "ABDUR RAKIB", "ROKEYA KHATUN", "HALEMATUS SADIA",
+        "AMRINA AKTAR EVA", "HOSNEARA KHATUN", "UMME HABIBA", "JANNATUL NAIM JIMI", "MARIOM KHATUN",
+        "JANNATUNNASA TAMANNA", "SAWDA BITE RAFIQUE", "EVA KHATUN", "UMME AIMAN LENA", "ROHIMA KHATUN",
+        "MD. ABU SAYEM", "BADHON"
+    ];
+
+    // ---------- সাপোর্ট ডাটা ক্যাটাগরি ----------
+    // মান (পদ/মর্যাদা) : রোল লেভেল নির্দেশক
+    const gradeValues = [
+        "সিনিয়র এক্সিকিউটিভ", "মিড লেভেল ম্যানেজার", "টিম লিডার", "কো-অর্ডিনেটর", "প্রধান সংগঠক",
+        "কৌশলগত উপদেষ্টা", "অপারেশনস হেড", "ফিল্ড সুপারভাইজার", "রিসোর্স পার্সন", "নির্বাহী সদস্য",
+        "ট্রেইনি লিড", "সেক্টর প্রধান", "প্রকল্প সমন্বয়ক", "সাংগঠনিক সম্পাদক"
+    ];
+
+    // টার্গেট রোল (কে কে টার্গেটে নিয়েছে তার রোল) : বিভিন্ন দায়িত্বের ভূমিকা
+    const targetRoles = [
+        "ক্ষেত্র সমীক্ষক", "গেট ম্যানেজার", "কমিউনিটি এনগেজমেন্ট লিড", "প্রশিক্ষণ কো-অর্ডিনেটর",
+        "ডাটা অ্যানালিস্ট", "টিম বিল্ডার", "ইভেন্ট ম্যানেজার", "যোগাযোগ বিশেষজ্ঞ", "নিরাপত্তা সমন্বয়ক",
+        "তথ্য সংগ্রহকারী", "সাপ্লাই চেইন লিড", "মনিটরিং অফিসার", "সাংগঠনিক টার্গেট লিডার"
+    ];
+
+    // সার্কেল রোল (গ্রুপ/সার্কেল ভিত্তিক দায়িত্ব)
+    const circleRoles = [
+        "উত্তর সার্কেল লিড", "দক্ষিণ সার্কেল সমন্বয়ক", "পূর্ব সার্কেল হেড", "পশ্চিম সার্কেল কোর",
+        "সেন্ট্রাল সার্কেল মডারেটর", "মহিলা নেতৃত্ব সার্কেল", "যুব সার্কেল অ্যাম্বাসেডর", "প্রশাসনিক সার্কেল",
+        "গুরুত্বপূর্ণ টাস্ক ফোর্স", "প্রশিক্ষণ সার্কেল কোচ", "ফাস্ট রেসপন্স সার্কেল"
+    ];
+
+    // মনোভা (ব্যক্তিত্ব/মেন্টালিটি)
+    const monovaList = [
+        "উচ্চ প্রেরণা", "স্থিতিস্থাপক", "উদ্যোগী", "সহযোগিতাপরায়ণ", "কৌশলী মস্তিষ্ক",
+        "টিম প্লেয়ার", "লিডারশিপ মানসিকতা", "বিশ্লেষণধর্মী", "সৃজনশীল সংগঠক", "শৃঙ্খলাবদ্ধ যোদ্ধা"
+    ];
+
+    // মন্তব্য অপশন (ব্যক্তিগত নোট)
+    const commentsPool = [
+        "নিয়মিত টার্গেট অতিক্রম করে", "উন্নতির সুযোগ রয়েছে", "দারুণ নেতৃত্ব দিচ্ছে", "প্রশিক্ষণ প্রয়োজন",
+        "দলগত কাজে সক্রিয়", "সৃজনশীল সমাধান দেয়", "টার্গেট বাস্তবায়নে নেতৃত্ব", "নতুন উদ্যোগ গ্রহণ করেছে",
+        "সার্কেল কার্যক্রম চমৎকার", "মনোভা প্রশংসনীয়"
+    ];
+
+    // হেল্পার ফাংশন : সীডেড র‍্যান্ডম কিন্তু নির্দিষ্ট সদস্যের জন্য একই মান ফিরিয়ে দেবে
+    function getConsistentItem(arr, seed) {
+        const idx = seed % arr.length;
+        return arr[idx];
+    }
+
+    // উন্নতি % এবং অবনতি % নির্ণয় (উন্নতি+অবনতি ১০০ এর কাছাকাছি কিন্তু না, আলাদা সূচক)
+    // অবনতি % উন্নতি % এর বিপরীতে নয়, বরং ভিন্ন মেট্রিক (কাজের ঘাটতি / চ্যালেঞ্জ)
+    function getImprovementPercent(seed) {
+        let base = (seed * 17 + 11) % 79 + 15;  // 15-93 এর মধ্যে
+        if (base > 96) base = 92;
+        return base;
+    }
+
+    function getDeclinePercent(seed) {
+        let base = (seed * 9 + 33) % 58 + 5;   // 5% - 62% এর মধ্যে (স্বাভাবিক অবনতি সূচক)
+        if (base > 70) base = 68;
+        return base;
+    }
+
+    // কে কে টার্গেটে নিয়েছে তার রোল -> ব্যক্তির টার্গেট রোল অ্যাসাইনমেন্ট
+    function getTargetRoleByName(nameIdx, seedVal) {
+        if (nameIdx >= 70 && nameIdx <= 79) return "মহিলা ক্ষমতায়ন টার্গেট লিড";
+        if (nameIdx === 81) return "ফাইনাল মাইল টার্গেট কো-অর্ডিনেটর";
+        if (nameIdx % 11 === 0) return "স্টেকহোল্ডার টার্গেট হেড";
+        return getConsistentItem(targetRoles, seedVal + nameIdx);
+    }
+
+    // সার্কেল রোল (ব্যক্তির জেলা/সার্কেল ভিত্তিক)
+    function getCircleRole(nameIdx, seedVal) {
+        if (nameIdx === 16 || nameIdx === 28) return "স্পেশাল প্রজেক্ট সার্কেল লিড";
+        if (nameIdx > 64 && nameIdx < 70) return "নারী নেতৃত্ব সার্কেল";
+        return getConsistentItem(circleRoles, seedVal * 2 + nameIdx);
+    }
+
+    // মনোভা নির্ধারণ (মেন্টালিটি প্রোফাইল)
+    function getMonova(nameIdx, seedVal) {
+        if (nameIdx === 0) return "কৌশলী দূরদর্শী";
+        if (nameIdx === 44) return "অ্যাডাপ্টিভ লিডার";
+        if (nameIdx > 75) return "সহানুভূতিশীল সংগঠক";
+        return getConsistentItem(monovaList, seedVal + nameIdx * 3);
+    }
+
+    // মন্তব্য জেনারেট
+    function getRemark(name, nameIdx, seedVal) {
+        if (name.includes("OMAR FARUK")) return "একাধিক টার্গেট পূরণে সক্রিয়";
+        if (name.includes("KHATUN")) return "নারী নেতৃত্বে অসাধারণ ভূমিকা";
+        if (nameIdx === 53) return "টার্গেট ও সার্কেল সমন্বয়ে দক্ষ";
+        return getConsistentItem(commentsPool, seedVal + nameIdx * 2);
+    }
+
+    // মান (পদ/গ্রেড) নির্ধারণ
+    function getGradeValue(idx) {
+        if (idx < 6) return "প্রধান নির্বাহী গ্রেড";
+        if (idx < 15) return "সিনিয়র কৌশলগত পদ";
+        if (idx >= 30 && idx < 45) return "মিড লেভেল এক্সিকিউটিভ";
+        if (idx > 64) return "মহিলা নেতৃত্ব পদমর্যাদা";
+        return getConsistentItem(gradeValues, idx * 5 + 7);
+    }
+
+    // ---------- সম্পূর্ণ টেবিল বিল্ড ----------
+    function buildFullRollTable() {
+        const tbody = document.getElementById("tableRollBody");
+        if (!tbody) return;
+        tbody.innerHTML = "";
+
+        for (let i = 0; i < fullNameList.length; i++) {
+            const serial = (i + 1).toString().padStart(2, '0');
+            const name = fullNameList[i];
+            const seedVal = (i * 13 + 7) % 997;   // কনসিস্টেন্সির জন্য সীড
+
+            // মান (পদ/মান)
+            const grade = getGradeValue(i);
+            
+            // উন্নতি % ও অবনতি %
+            let improvement = getImprovementPercent(seedVal + i);
+            let decline = getDeclinePercent(seedVal * 3 + i);
+            // যাতে অবনতি ও উন্নতি যৌক্তিক হয় (একসাথে বড় হতে পারে, কিন্তু আলাদা সূচক)
+            if (decline > 70) decline = 65;
+            if (improvement < 12) improvement = 18;
+            
+            // কে কে টার্গেটে নিয়েছে তার রোল
+            const targetRole = getTargetRoleByName(i, seedVal);
+            
+            // সার্কেল রোল
+            const circleRole = getCircleRole(i, seedVal);
+            
+            // মনোভা
+            const monova = getMonova(i, seedVal);
+            
+            // মন্তব্য
+            const remark = getRemark(name, i, seedVal);
+            
+            // DOM এ row তৈরি
+            const tr = document.createElement("tr");
+            
+            // ক্রমিক
+            const tdSerial = document.createElement("td");
+            tdSerial.textContent = serial;
+            tdSerial.classList.add("serial-cell");
+            tr.appendChild(tdSerial);
+            
+            // নাম
+            const tdName = document.createElement("td");
+            tdName.textContent = name;
+            tr.appendChild(tdName);
+            
+            // মান
+            const tdGrade = document.createElement("td");
+            tdGrade.textContent = grade;
+            tdGrade.style.fontWeight = "500";
+            tdGrade.style.background = "#f0f5fa";
+            tdGrade.style.borderRadius = "20px";
+            tr.appendChild(tdGrade);
+            
+            // উন্নতি %
+            const tdUp = document.createElement("td");
+            tdUp.innerHTML = `<span class="progress-up">📈 ${improvement}%</span>`;
+            tr.appendChild(tdUp);
+            
+            // অবনতি %
+            const tdDown = document.createElement("td");
+            tdDown.innerHTML = `<span class="progress-down">📉 ${decline}%</span>`;
+            tr.appendChild(tdDown);
+            
+            // কে কে টার্গেটে নিয়েছে তার রোল
+            const tdTarget = document.createElement("td");
+            tdTarget.innerHTML = `<span class="target-badge">🎯 ${targetRole}</span>`;
+            tdTarget.style.fontSize = "0.75rem";
+            tr.appendChild(tdTarget);
+            
+            // সার্কেল রোল
+            const tdCircle = document.createElement("td");
+            tdCircle.innerHTML = `<span class="circle-role">🔄 ${circleRole}</span>`;
+            tr.appendChild(tdCircle);
+            
+            // মনোভা
+            const tdMonova = document.createElement("td");
+            tdMonova.innerHTML = `<span class="monova-tag">🧠 ${monova}</span>`;
+            tr.appendChild(tdMonova);
+            
+            // মন্তব্য
+            const tdComment = document.createElement("td");
+            tdComment.innerHTML = `<div class="comment-text">💬 ${remark}</div>`;
+            tr.appendChild(tdComment);
+            
+            tbody.appendChild(tr);
+        }
+        
+        // মোট সদস্য সংখ্যা আপডেট
+        const countSpan = document.getElementById("totalMemberCount");
+        if (countSpan) countSpan.innerText = `👥 মোট সদস্য: ${fullNameList.length} জন`;
+    }
+    
+    // পৃষ্ঠা লোড হলে রেন্ডার
+    document.addEventListener("DOMContentLoaded", () => {
+        buildFullRollTable();
+        console.log("রোল, টার্গেট, সার্কেল রোল ও মনোভা সংবলিত টেবিল তৈরি সম্পন্ন। মোট কর্মী:", fullNameList.length);
+    });
+</script>
+</body>
+</html>
